@@ -1,18 +1,21 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
-	GzipWrite()
+	fmtPrint()
 }
 
 func OsWrite() {
@@ -85,4 +88,22 @@ func GzipWrite() {
 	writer.Close()
 
 	os.Remove(filename)
+}
+
+func BufioWrite() {
+	buffer := bufio.NewWriter(os.Stdout)
+	buffer.WriteString("bufio.Writer ")
+	buffer.WriteString("example\n")
+	buffer.Flush()
+}
+
+func fmtPrint() {
+	fmt.Fprintf(os.Stdout, "Write %v", time.Now())
+
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.SetIndent("", "  ")
+	encoder.Encode(map[string]string{
+		"example": "encoding/json",
+		"hello": "world",
+	})
 }
