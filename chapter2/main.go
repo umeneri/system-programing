@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,7 +16,7 @@ import (
 )
 
 func main() {
-	fmtPrint()
+	GzipJson()
 }
 
 func OsWrite() {
@@ -61,7 +62,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func HttpRequest() {
 	http.HandleFunc("/", handler)
+	fmt.Print("hoge")
 	http.ListenAndServe(":8080", nil)
+	fmt.Print("hoge")
 }
 
 func MultiWrite() {
@@ -97,13 +100,45 @@ func BufioWrite() {
 	buffer.Flush()
 }
 
-func fmtPrint() {
-	fmt.Fprintf(os.Stdout, "Write %v", time.Now())
+func FmtPrint() {
+	fmt.Fprintf(os.Stdout, "Write %s", time.Now())
 
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetIndent("", "  ")
 	encoder.Encode(map[string]string{
 		"example": "encoding/json",
-		"hello": "world",
+		"hello":   "world",
 	})
+}
+
+func CsvWrite() {
+	w := csv.NewWriter(os.Stdout)
+	record := []string{"1", "2", "hoge"}
+
+	w.Write(record)
+	w.Flush()
+}
+
+func gzipHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Encoding", "gzip")
+	w.Header().Set("Content-Type", "application/json")
+
+	gwriter := gzip.NewWriter(w)
+	// gwriter.Header.Name = "test.txt"
+
+	jsonWriter := io.MultiWriter(gwriter, os.Stdout)
+	encoder := json.NewEncoder(jsonWriter)
+	encoder.SetIndent("", "  ")
+	// json 化する元のデータ
+	source := map[string]string{
+		"Hello": "World",
+	}
+	encoder.Encode(source)
+
+	gwriter.Close()
+}
+
+func GzipJson() {
+	http.HandleFunc("/", gzipHandler)
+	http.ListenAndServe(":8080", nil)
 }
