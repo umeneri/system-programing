@@ -92,6 +92,7 @@ func Stream() {
 	buffer2 := make([]byte, 1024)
 	programming.ReadAt(buffer2, 8)
 	_, _ = io.CopyN(bufs["i"], bytes.NewBuffer(buffer2), 1)
+	// readするとbufの中身は消えるので別bufを使う
 	io.Copy(io.MultiWriter(bufs["i1"], bufs["i2"]), bufs["i"])
 
 	stream = io.MultiReader(bufs["a"], bufs["s"], bufs["c"], bufs["i1"], bufs["i2"])
