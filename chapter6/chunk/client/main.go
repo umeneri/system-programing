@@ -43,8 +43,6 @@ func main() {
 	}
 	fmt.Println(string(dump))
 
-	io.Copy(os.Stdout, response.Body)
-
 
 	if len(response.TransferEncoding) < 1 ||
 		response.TransferEncoding[0] != "chunked" {
