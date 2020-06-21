@@ -21,7 +21,7 @@ func main() {
 	request, err := http.NewRequest(
 		"GET",
 		"http://localhost:8080",
-		nil)
+		nil,)
 
 	if err != nil {
 		panic(err)
