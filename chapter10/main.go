@@ -78,7 +78,7 @@ func NewFileLock(filename string) *FileLock {
 	return &FileLock{fd: fd}
 }
 
-func (m *FileLock) Lock()  {
+func (m *FileLock) Lock() {
 	m.l.Lock()
 
 	if err := syscall.Flock(m.fd, syscall.LOCK_EX); err != nil {
@@ -86,7 +86,7 @@ func (m *FileLock) Lock()  {
 	}
 }
 
-func (m *FileLock) Unlock()  {
+func (m *FileLock) Unlock() {
 	if err := syscall.Flock(m.fd, syscall.LOCK_UN); err != nil {
 		panic(err)
 	}
@@ -102,7 +102,7 @@ func lockTest() {
 	fmt.Println("unlock")
 }
 
-func main() {
+func Mmap() {
 	var testData = []byte("0123333456789ABCDEF")
 	var testPath = filepath.Join(os.TempDir(), "testdata")
 	err := ioutil.WriteFile(testPath, testData, 0644)
@@ -123,11 +123,45 @@ func main() {
 	m[9] = 'X'
 	m.Flush()
 
-	fileData, err  := ioutil.ReadAll(f)
+	fileData, err := ioutil.ReadAll(f)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("original: %s\n", testData)
 	fmt.Printf("mmap: %s\n", m)
 	fmt.Printf("file: %s\n", fileData)
+}
+
+func Kqueue() {
+	kq, err := syscall.Kqueue()
+	if err != nil {
+		panic(err)
+	}
+	fd, err := syscall.Open("./test", syscall.O_RDONLY, 0)
+	if err != nil {
+		panic(err)
+	}
+	ev1 := syscall.Kevent_t{
+		Ident:  uint64(fd),
+		Filter: syscall.EVFILT_VNODE,
+		Flags:  syscall.EV_ADD | syscall.EV_ENABLE | syscall.EV_ONESHOT,
+		Fflags: syscall.NOTE_DELETE | syscall.NOTE_WRITE,
+		Data:   0,
+		Udata:  nil,
+	}
+	for {
+		events := make([]syscall.Kevent_t, 10)
+		nev, err := syscall.Kevent(kq, []syscall.Kevent_t{ev1}, events, nil)
+		if err != nil {
+			panic(err)
+		}
+		for i := 0; i < nev; i++ {
+			fmt.Printf("Event [%d] -> %+v\n", i, events[i])
+		}
+	}
+}
+
+
+func main()  {
+	Kqueue()
 }
