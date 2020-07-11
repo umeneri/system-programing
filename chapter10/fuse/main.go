@@ -46,6 +46,7 @@ ofst int64, fh uint64) (errc int)  {
 	ctx := context.Background()
 	fill(".", nil, 0)
 	fill("..", nil, 0)
+	fmt.Println(path)
 	prefix := strings.TrimLeft(path, "/")
 	if prefix != "" {
 		prefix = prefix + "/"
@@ -66,6 +67,29 @@ ofst int64, fh uint64) (errc int)  {
 		fill(strings.TrimRight(key, "/"), nil, 0)
 	}
 	return 0
+}
+
+func (cf *CloudFileSystem) Read(path string, buff []byte, ofst int64, fh uint64) (n int) {
+	name := strings.TrimLeft(path, "/")
+	ctx := context.Background()
+	reader, err := cf.bucket.NewRangeReader(ctx, name, ofst, int64(len(buff)), nil)
+	if err != nil {
+		return
+	}
+	defer reader.Close()
+	n, _ = reader.Read(buff)
+	return
+}
+
+
+// Open opens a file.
+// The flags are a combination of the fuse.O_* constants.
+// The FileSystemBase implementation returns -ENOSYS.
+func (cf *CloudFileSystem) Open(path string, flags int) (n int, u uint64) {
+	fmt.Println(path)
+	fmt.Println(flags)
+	// return -ENOSYS, ^uint64(0)
+	return
 }
 
 func main()  {
